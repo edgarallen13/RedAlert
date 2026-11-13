@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>RedAlert RSSI • Visayas Sugarcane Spread Risk Forecast</title>
+  <!-- Tailwind CSS for responsive mobile-first styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Custom scrollbar hiding for smooth horizontal hourly forecast strip */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Smooth range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #059669;
+      cursor: pointer;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+    input[type="range"]:disabled::-webkit-slider-thumb {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-emerald-200 selection:text-emerald-950">
+
+  <!-- Main App Wrapper (Mobile-first centered container) -->
+  <div class="min-h-screen max-w-lg mx-auto bg-slate-50 shadow-xl flex flex-col relative pb-10">
+
+    <!-- Top Hero Header (Dynamic gradient shifts with RSSI Risk Level) -->
+    <header id="heroHeader" class="bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 text-white rounded-b-3xl shadow-lg px-4 pt-4 pb-6 transition-colors duration-500">
+      
+      <!-- Top Navigation Bar -->
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+            <!-- Sugarcane / Shield SVG Icon -->
+            <svg class="w-5 h-5 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M12 8v8"/>
+              <path d="M9 11c1.5 0 3 .5 3 2"/>
+              <path d="M15 13c-1.5 0-3 .5-3 2"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="font-bold text-base tracking-tight leading-none">RedAlert RSSI</h1>
+              <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/15 text-emerald-100">Beta</span>
+            </div>
+            <p class="text-[11px] text-white/75 mt-0.5">Visayas Scale Spread Forecaster</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- GPS Button -->
+          <button id="gpsBtn" type="button" title="Use Current GPS Location"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 transition text-xs font-semibold border border-white/20 backdrop-blur-sm">
+            <svg class="w-4 h-4 text-emerald-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+            <span>GPS</span>
+          </button>
+
+          <!-- Settings Drawer Button -->
+          <button id="openSettingsBtn" type="button" title="Field & Water Proximity Settings"
+            class="relative p-2.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 transition border border-white/20 backdrop-blur-sm">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <!-- Active Water Modifier Indicator Dot -->
+            <span id="waterActiveDot" class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-cyan-400 ring-2 ring-emerald-900"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Location Search Bar -->
+      <div class="relative mb-3">
+        <div class="flex items-center bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl px-3.5 py-2.5 focus-within:bg-white/20 focus-within:border-white/40 transition">
+          <svg class="w-4 h-4 text-white/75 mr-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input id="searchInput" type="text" placeholder="Search Visayas town (e.g., Pototan, Bacolod)..."
+            class="w-full bg-transparent text-sm text-white placeholder-white/65 focus:outline-none" autocomplete="off" />
+          <button id="clearSearchBtn" type="button" class="hidden text-white/70 hover:text-white ml-2 text-xs font-bold px-1.5 py-0.5">✕</button>
+        </div>
+
+        <!-- Search Autocomplete Dropdown -->
+        <div id="searchResults" class="hidden absolute left-0 right-0 mt-1.5 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-30 max-h-60 overflow-y-auto"></div>
+      </div>
+
+      <!-- Quick Preset Pills for Major Visayas Sugarcane Hubs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 mb-4">
+        <span class="text-[11px] text-white/70 font-medium shrink-0 mr-1">Hubs:</span>
+        <button type="button" data-lat="10.9469" data-lon="122.6361" data-name="Pototan, Iloilo"
+          class="hub-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 hover:bg-white/25 border border-white/20 transition">Pototan</button>
+        <button type="button" data-lat="11.1075" data-lon="122.6414" data-name="Passi City, Iloilo"
+          class="hub-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 hover:bg-white/25 border border-white/20 transition">Passi</button>
+        <button type="button" data-lat="10.6765" data-lon="122.9509" data-name="Bacolod, Negros Occ."
+          class="hub-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 hover:bg-white/25 border border-white/20 transition">Bacolod</button>
+        <button type="button" data-lat="10.8969" data-lon="123.0731" data-name="Victorias, Negros Occ."
+          class="hub-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 hover:bg-white/25 border border-white/20 transition">Victorias</button>
+        <button type="button" data-lat="9.9889" data-lon="122.8153" data-name="Kabankalan, Negros Occ."
+          class="hub-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 hover:bg-white/25 border border-white/20 transition">Kabankalan</button>
+        <button type="button" data-lat="11.0064" data-lon="124.6075" data-name="Ormoc City, Leyte"
+          class="hub-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 hover:bg-white/25 border border-white/20 transition">Ormoc</button>
+      </div>
+
+      <!-- Status Banner (for GPS feedback or API notices) -->
+      <div id="statusBanner" class="hidden mb-3 px-3 py-2 rounded-xl bg-black/25 border border-white/15 text-xs text-white/95 flex items-center justify-between gap-2">
+        <span id="statusBannerText">Locating...</span>
+        <button type="button" onclick="document.getElementById('statusBanner').classList.add('hidden')" class="text-white/70 hover:text-white font-bold">✕</button>
+      </div>
+
+      <!-- Current Location & Weather Overview -->
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            <h2 id="locationName" class="text-lg font-bold tracking-tight leading-snug">Pototan, Iloilo</h2>
+          </div>
+          <p id="locationCoords" class="text-[11px] text-white/75 mt-0.5">10.95°N, 122.64°E • Updated just now</p>
+
+          <div class="flex items-baseline gap-2.5 mt-3">
+            <span id="currentTemp" class="text-5xl font-extrabold tracking-tighter">--°</span>
+            <div>
+              <div id="currentCondition" class="text-sm font-semibold text-white/95">Loading weather...</div>
+              <div id="currentHiLo" class="text-xs text-white/75">H: --°  L: --°</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current RSSI Risk Score Card inside Header -->
+        <div class="bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl p-3 text-center min-w-[122px] shadow-md">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-white/80 mb-1">RSSI Spread Risk</div>
+          <div class="flex items-baseline justify-center gap-0.5">
+            <span id="currentRiskScore" class="text-3xl font-extrabold tracking-tight">--</span>
+            <span class="text-xs text-white/75 font-semibold">/100</span>
+          </div>
+          <div id="currentRiskBadge" class="mt-1.5 inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wide bg-white text-slate-900 shadow-sm">
+            LOADING
+          </div>
+        </div>
+      </div>
+
+      <!-- Telemetry Pills Row (Humidity, Dew/Leaf Wetness, Wind, Pond Modifier) -->
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <div class="bg-black/20 backdrop-blur-sm rounded-xl p-2.5 border border-white/10">
+          <div class="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Humidity</div>
+          <div id="currentHumidity" class="text-sm font-bold mt-0.5">--%</div>
+          <div id="humidityNote" class="text-[10px] text-white/75 truncate">Relative RH</div>
+        </div>
+
+        <div class="bg-black/20 backdrop-blur-sm rounded-xl p-2.5 border border-white/10">
+          <div class="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Leaf Wetness</div>
+          <div id="currentLeafStatus" class="text-sm font-bold mt-0.5">--</div>
+          <div id="currentDewSpread" class="text-[10px] text-white/75 truncate">Dew spread: --°C</div>
+        </div>
+
+        <div class="bg-black/20 backdrop-blur-sm rounded-xl p-2.5 border border-white/10">
+          <div class="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Wind Dispersal</div>
+          <div id="currentWind" class="text-sm font-bold mt-0.5">-- km/h</div>
+          <div id="pondBadgeText" class="text-[10px] text-cyan-200 font-medium truncate">Water: OFF</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="px-4 pt-4 space-y-4 flex-1">
+
+      <!-- Field Advisory & Risk Factor Breakdown Card -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span id="advisoryDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Field Advisory & Drivers</h3>
+          </div>
+          <button type="button" id="quickWaterToggleBtn" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Pond: OFF
+          </button>
+        </div>
+
+        <p id="currentAdvisory" class="text-sm text-slate-800 font-medium leading-relaxed">
+          Fetching live microclimate parameters to evaluate Red-Striped Soft Scale Insect crawler dispersal conditions...
+        </p>
+
+        <!-- Key Contributing Factor Chips -->
+        <div id="factorChips" class="flex flex-wrap gap-1.5 mt-3"></div>
+      </section>
+
+      <!-- Next 24-Hour Hourly Forecast Strip -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Next 24 Hours</h3>
+            <p class="text-[11px] text-slate-500">Hourly leaf dew &amp; crawler dispersal window</p>
+          </div>
+          <span class="text-[11px] font-medium text-slate-400">Swipe →</span>
+        </div>
+
+        <div id="hourlyContainer" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          <!-- Populated dynamically by JS -->
+          <div class="text-xs text-slate-400 py-6 text-center w-full">Loading hourly forecast...</div>
+        </div>
+      </section>
+
+      <!-- 7-Day RSSI & Weather Outlook -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">7-Day Spread Risk Outlook</h3>
+            <p class="text-[11px] text-slate-500">Tap any day to inspect daily risk drivers</p>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Next Week</span>
+        </div>
+
+        <div id="dailyContainer" class="divide-y divide-slate-100">
+          <!-- Populated dynamically by JS -->
+          <div class="text-xs text-slate-400 py-6 text-center">Loading 7-day forecast...</div>
+        </div>
+      </section>
+
+      <!-- Thesis / Model Transparency Footer -->
+      <footer class="bg-slate-200/60 rounded-2xl p-3.5 text-[11px] text-slate-600 flex items-center justify-between gap-3">
+        <div>
+          <span class="font-bold text-slate-700">Engine:</span> v0.1 Heuristic Baseline
+          <span class="block text-[10px] text-slate-500">Weather via Open-Meteo • Ready for ONNX / m2cgen ML</span>
+        </div>
+        <button type="button" onclick="openSettingsModal()" class="shrink-0 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-semibold shadow-xs hover:bg-slate-50">
+          Configure
+        </button>
+      </footer>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- SETTINGS & WATER PROXIMITY DRAWER / MODAL                 -->
+    <!-- ========================================================= -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-0 sm:p-4">
+      <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 p-5 space-y-5 max-h-[90vh] overflow-y-auto">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Field Microclimate &amp; Model Settings</h2>
+            <p class="text-xs text-slate-500">Adjust hyperlocal sugarcane plot parameters</p>
+          </div>
+          <button id="closeSettingsBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold">✕</button>
+        </div>
+
+        <!-- Body of Water Proximity Control -->
+        <div class="bg-cyan-50/70 border border-cyan-200 rounded-2xl p-4 space-y-3.5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+                  <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+                  <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+                </svg>
+                <span class="text-sm font-bold text-slate-900">Nearby Body of Water</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-0.5">Fishponds, creeks, or irrigation canals create cooler, humid microclimates that suppress RSSI spread.</p>
+            </div>
+
+            <!-- Toggle Switch -->
+            <label class="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+              <input type="checkbox" id="waterToggle" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+            </label>
+          </div>
+
+          <!-- Distance Slider -->
+          <div id="waterSliderContainer" class="opacity-50 transition-opacity pt-1">
+            <div class="flex items-center justify-between text-xs font-semibold mb-1.5">
+              <span class="text-slate-700">Distance from Field Edge</span>
+              <span id="waterDistanceLabel" class="text-cyan-800 bg-cyan-100 px-2 py-0.5 rounded-md font-bold">150 m</span>
+            </div>
+            <input type="range" id="waterDistanceSlider" min="50" max="1000" step="25" value="150" disabled class="w-full" />
+            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+              <span>50m (Strong suppression)</span>
+              <span>500m</span>
+              <span>1000m (Minimal)</span>
+            </div>
+          </div>
+
+          <!-- Live Impact Preview Pill -->
+          <div class="bg-white rounded-xl p-2.5 border border-cyan-200/80 flex items-center justify-between text-xs">
+            <span class="text-slate-600 font-medium">Current Risk Score Impact:</span>
+            <span id="waterImpactPreview" class="font-bold text-slate-800">0 pts (Disabled)</span>
+          </div>
+
+          <!-- Auto-detect via OpenStreetMap Overpass API -->
+          <button type="button" id="detectWaterBtn"
+            class="w-full py-2.5 px-3 rounded-xl bg-cyan-700 hover:bg-cyan-800 active:scale-[0.99] text-white text-xs font-semibold transition flex items-center justify-center gap-2 shadow-xs">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>
+            </svg>
+            <span id="detectWaterBtnText">Auto-Detect Water Bodies within 500m (OSM)</span>
+          </button>
+          <p id="overpassStatus" class="hidden text-[11px] text-center text-cyan-900 font-medium"></p>
+        </div>
+
+        <!-- ML Model Engine Status Card -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Model Engine Status</span>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Prototype v0.1</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-800">v0.1 Heuristic Rule-Based Baseline (Ready for ONNX / m2cgen ML Weights)</p>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            Currently running an entomological rule-based scoring function using Temperature, Relative Humidity, Dew Point Depression (leaf wetness), Precipitation, Wind Speed, and Water Proximity. Once field datasets are trained in Python, replace <code class="bg-slate-200 px-1 rounded text-slate-800">predictRSSIRisk()</code> with your exported model.
+          </p>
+        </div>
+
+        <button type="button" id="doneSettingsBtn" class="w-full py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-md transition">
+          Apply &amp; Update Forecast
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- DAILY BREAKDOWN DETAIL MODAL (On tapping a 7-day row)     -->
+    <!-- ========================================================= -->
+    <div id="dayDetailModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-0 sm:p-4">
+      <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 id="modalDayTitle" class="text-base font-bold text-slate-900">Day Outlook</h3>
+            <p id="modalDaySubtitle" class="text-xs text-slate-500">Detailed RSSI spread breakdown</p>
+          </div>
+          <button type="button" onclick="document.getElementById('dayDetailModal').classList.add('hidden')"
+            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold">✕</button>
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <div>
+            <div class="text-xs text-slate-500 font-semibold">Peak Daily RSSI Risk</div>
+            <div id="modalDayScore" class="text-3xl font-extrabold text-slate-900 mt-0.5">--/100</div>
+          </div>
+          <span id="modalDayBadge" class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800">LOW</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 text-xs">
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+            <span class="text-slate-500 block">Temp Range</span>
+            <span id="modalDayTemp" class="font-bold text-slate-800 text-sm">--</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+            <span class="text-slate-500 block">Afternoon Leaf Dew</span>
+            <span id="modalDayDew" class="font-bold text-slate-800 text-sm">--</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+            <span class="text-slate-500 block">Precipitation</span>
+            <span id="modalDayRain" class="font-bold text-slate-800 text-sm">--</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+            <span class="text-slate-500 block">Max Wind Speed</span>
+            <span id="modalDayWind" class="font-bold text-slate-800 text-sm">--</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Recommended Action</div>
+          <p id="modalDayAdvisory" class="text-sm text-slate-700 bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC & MODULAR RSSI RISK MODEL                           -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * =========================================================================
+     * APPLICATION STATE
+     * =========================================================================
+     */
+    const appState = {
+      lat: 10.9469,
+      lon: 122.6361,
+      locationName: 'Pototan, Iloilo',
+      weatherData: null,
+      nearWaterBody: false,
+      waterDistanceMeters: 150,
+    };
+
+    // Load persisted water settings if available
+    try {
+      const savedWater = localStorage.getItem('RedAlert_water_settings');
+      if (savedWater) {
+        const parsed = JSON.parse(savedWater);
+        appState.nearWaterBody = Boolean(parsed.nearWaterBody);
+        appState.waterDistanceMeters = Number(parsed.waterDistanceMeters) || 150;
+      }
+    } catch (e) {
+      console.warn('LocalStorage unavailable:', e);
+    }
+
+    /**
+     * =========================================================================
+     * MODULAR ML / HEURISTIC PREDICTION ENGINE
+     * =========================================================================
+     * NOTE FOR THESIS TEAM:
+     * Once you train your Random Forest, XGBoost, or MLP model in Python on
+     * your collected Visayas RSSI dataset:
+     *   - Option A (m2cgen): Export your model to a pure JS file `model.js`
+     *     using `m2cgen.export_to_javascript(clf)` and call `score(featureArray)`
+     *     right inside `predictRSSIRisk(features)` below.
+     *   - Option B (ONNX): Export to `rssi_model.onnx` via `skl2onnx`, load
+     *     `onnxruntime-web` via CDN, and run `session.run({ float_input: tensor })`.
+     *
+     * @param {Object} features
+     * @param {number} features.tempC - Ambient air temperature in °C
+     * @param {number} features.humidity - Relative humidity in % (0-100)
+     * @param {number} features.dewPointDepression - (tempC - dewPointC) in °C; <2.0°C = wet/dewy leaves
+     * @param {number} features.precipitation - Rainfall in mm
+     * @param {number} features.windSpeed - Wind speed at 10m in km/h
+     * @param {boolean} features.nearWaterBody - Whether field is near pond/creek/canal
+     * @param {number} features.waterDistanceMeters - Distance to water body (50m - 1000m)
+     * @returns {Object} { score, level, badgeBg, badgeText, headerGradient, factors, advisory, waterSuppression }
+     */
+    function predictRSSIRisk(features) {
+      const {
+        tempC,
+        humidity,
+        dewPointDepression,
+        precipitation,
+        windSpeed = 10,
+        nearWaterBody = false,
+        waterDistanceMeters = 150,
+      } = features;
+
+      let score = 20; // Baseline ambient risk
+      const factors = [];
+
+      // 1. Temperature Factor (RSSI thrives in warm 27°C–33°C tropical conditions)
+      if (tempC >= 28 && tempC <= 34) {
+        score += 24;
+        factors.push({ label: `Warm ${tempC.toFixed(1)}°C favors crawler activity`, type: 'risk' });
+      } else if (tempC >= 25 && tempC < 28) {
+        score += 14;
+        factors.push({ label: `Moderate warmth (${tempC.toFixed(1)}°C)`, type: 'neutral' });
+      } else if (tempC > 34) {
+        score += 10; // Extreme heat slightly stresses exposed crawlers
+        factors.push({ label: `High heat (${tempC.toFixed(1)}°C)`, type: 'neutral' });
+      } else {
+        score -= 5;
+        factors.push({ label: `Cooler temp (${tempC.toFixed(1)}°C) slows reproduction`, type: 'safe' });
+      }
+
+      // 2. Relative Humidity Factor (50%–75% ideal; >88% favors entomopathogenic fungi like Metarhizium)
+      if (humidity >= 50 && humidity <= 75) {
+        score += 18;
+        factors.push({ label: `Dry-moderate RH (${Math.round(humidity)}%) aids survival`, type: 'risk' });
+      } else if (humidity > 75 && humidity <= 86) {
+        score += 6;
+      } else if (humidity > 86) {
+        score -= 14;
+        factors.push({ label: `High RH (${Math.round(humidity)}%) encourages natural fungi`, type: 'safe' });
+      } else {
+        score += 12;
+      }
+
+      // 3. Leaf Wetness / Dew Point Depression (T - Td)
+      // Small spread (< 2.0°C) = heavy dew/wet leaf surface -> traps mobile crawlers
+      // Large spread (> 3.5°C) = dry leaf surface -> crawlers detach & disperse easily
+      if (dewPointDepression > 3.5) {
+        score += 22;
+        factors.push({ label: `Dry leaves (Dew spread ${dewPointDepression.toFixed(1)}°C)`, type: 'risk' });
+      } else if (dewPointDepression >= 2.0) {
+        score += 10;
+        factors.push({ label: `Semi-dry canopy (Spread ${dewPointDepression.toFixed(1)}°C)`, type: 'neutral' });
+      } else {
+        score -= 16;
+        factors.push({ label: `Wet/dewy leaves (Spread ${dewPointDepression.toFixed(1)}°C) trap crawlers`, type: 'safe' });
+      }
+
+      // 4. Active Precipitation Factor (Rain washes off newly hatched crawlers)
+      if (precipitation >= 2.0) {
+        score -= 28;
+        factors.push({ label: `Rain (${precipitation.toFixed(1)}mm) washes crawlers off leaves`, type: 'safe' });
+      } else if (precipitation >= 0.3) {
+        score -= 14;
+        factors.push({ label: `Light rain (${precipitation.toFixed(1)}mm) dampens spread`, type: 'safe' });
+      }
+
+      // 5. Wind Dispersal Factor (10–25 km/h carries crawlers across sugarcane rows)
+      if (windSpeed >= 12 && windSpeed <= 28 && precipitation < 0.5) {
+        score += 14;
+        factors.push({ label: `Breezy (${Math.round(windSpeed)} km/h) drives windborne spread`, type: 'risk' });
+      } else if (windSpeed > 28 && precipitation < 0.5) {
+        score += 18;
+        factors.push({ label: `Strong wind (${Math.round(windSpeed)} km/h) high dispersal risk`, type: 'risk' });
+      }
+
+      // 6. Water-Body Microclimate Adjustment (Pond / Creek / Canal Effect)
+      // Applies exponential/linear distance decay suppression up to 600m
+      let waterSuppression = 0;
+      if (nearWaterBody) {
+        const clampedDist = Math.max(50, Math.min(1000, waterDistanceMeters));
+        if (clampedDist <= 600) {
+          // Max -22 points at 50m, tapering down to -3 points at 600m
+          waterSuppression = Math.round(22 * (1 - (clampedDist - 50) / 600));
+        } else {
+          waterSuppression = 2;
+        }
+        score -= waterSuppression;
+        factors.push({
+          label: `Water body (${clampedDist}m) microclimate (-${waterSuppression} pts)`,
+          type: 'water',
+        });
+      }
+
+      // Clamp score between 0 and 100
+      score = Math.max(0, Math.min(100, Math.round(score)));
+
+      // Map score to Risk Tier & Actionable Agricultural Advisory
+      let level, badgeBg, badgeText, headerGradient, dotColor, advisory;
+
+      if (score >= 85) {
+        level = 'CRITICAL';
+        badgeBg = 'bg-rose-600 text-white';
+        badgeText = 'text-rose-700';
+        headerGradient = 'from-rose-950 via-red-900 to-amber-900';
+        dotColor = 'bg-rose-600';
+        advisory =
+          'Peak crawler dispersal window! Hot, dry leaf surfaces and wind favor rapid inter-row spread. Avoid moving cane points/equipment from infested blocks; inspect lower leaf sheaths and prepare Metarhizium anisopliae or recommended spot control.';
+      } else if (score >= 65) {
+        level = 'HIGH';
+        badgeBg = 'bg-orange-500 text-white';
+        badgeText = 'text-orange-700';
+        headerGradient = 'from-amber-900 via-orange-900 to-stone-900';
+        dotColor = 'bg-orange-500';
+        advisory =
+          'Favorable conditions for RSSI crawler movement. Dry leaves allow young scales to detach easily. Scout downwind field borders and ratoon crops for white waxy colonies.';
+      } else if (score >= 35) {
+        level = 'MODERATE';
+        badgeBg = 'bg-amber-400 text-slate-950';
+        badgeText = 'text-amber-700';
+        headerGradient = 'from-teal-900 via-emerald-900 to-amber-900';
+        dotColor = 'bg-amber-400';
+        advisory =
+          'Moderate spread potential. Partial leaf moisture or mild breezes limit rapid outbreak expansion, though localized crawler transfer can still occur during warm afternoon hours.';
+      } else {
+        level = 'LOW';
+        badgeBg = 'bg-emerald-400 text-emerald-950';
+        badgeText = 'text-emerald-700';
+        headerGradient = 'from-emerald-900 via-emerald-800 to-teal-900';
+        dotColor = 'bg-emerald-500';
+        advisory =
+          'Low RSSI spread risk. Leaf wetness, high humidity, rainfall, or nearby water microclimate is naturally suppressing crawler mobility and favoring beneficial fungi/predators.';
+      }
+
+      return {
+        score,
+        level,
+        badgeBg,
+        badgeText,
+        headerGradient,
+        dotColor,
+        factors,
+        advisory,
+        waterSuppression,
+      };
+    }
+
+    /**
+     * =========================================================================
+     * WMO WEATHER CODE INTERPRETER (Open-Meteo Standard)
+     * =========================================================================
+     */
+    function decodeWeatherCode(code, isNight = false) {
+      if (code === 0) return { label: 'Clear Sky', icon: isNight ? '🌙' : '☀️' };
+      if (code === 1) return { label: 'Mainly Clear', icon: isNight ? '🌙' : '🌤️' };
+      if (code === 2) return { label: 'Partly Cloudy', icon: '⛅' };
+      if (code === 3) return { label: 'Overcast', icon: '☁️' };
+      if (code === 45 || code === 48) return { label: 'Fog / Mist', icon: '🌫️' };
+      if (code >= 51 && code <= 57) return { label: 'Drizzle', icon: '🌦️' };
+      if (code >= 61 && code <= 67) return { label: 'Rain', icon: '🌧️' };
+      if (code >= 71 && code <= 77) return { label: 'Ice / Snow', icon: '❄️' };
+      if (code >= 80 && code <= 82) return { label: 'Rain Showers', icon: '🌦️' };
+      if (code >= 95 && code <= 99) return { label: 'Thunderstorm', icon: '⛈️' };
+      return { label: 'Variable', icon: '⛅' };
+    }
+
+    /**
+     * =========================================================================
+     * OPEN-METEO LIVE FORECAST FETCHER
+     * =========================================================================
+     */
+    async function fetchWeatherAndRender() {
+      showStatusBanner(`Fetching 7-day forecast for ${appState.locationName}...`);
+
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${appState.lat}&longitude=${appState.lon}&current=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Asia%2FManila&forecast_days=7`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        appState.weatherData = data;
+        hideStatusBanner();
+        renderDashboard();
+      } catch (err) {
+        console.error('Weather fetch failed:', err);
+        showStatusBanner('Unable to reach Open-Meteo API. Check internet connection.');
+      }
+    }
+
+    /**
+     * =========================================================================
+     * RENDER DASHBOARD (Current Hero + 24h Hourly + 7-Day Outlook)
+     * =========================================================================
+     */
+    function renderDashboard() {
+      const data = appState.weatherData;
+      if (!data) return;
+
+      const cur = data.current;
+      const hourly = data.hourly;
+      const daily = data.daily;
+
+      // 1. Evaluate Current RSSI Risk
+      const currentDewSpread = cur.temperature_2m - cur.dew_point_2m;
+      const currentRisk = predictRSSIRisk({
+        tempC: cur.temperature_2m,
+        humidity: cur.relative_humidity_2m,
+        dewPointDepression: currentDewSpread,
+        precipitation: cur.precipitation,
+        windSpeed: cur.wind_speed_10m,
+        nearWaterBody: appState.nearWaterBody,
+        waterDistanceMeters: appState.waterDistanceMeters,
+      });
+
+      // Update Header Gradient based on current risk
+      const heroHeader = document.getElementById('heroHeader');
+      heroHeader.className = `bg-gradient-to-br ${currentRisk.headerGradient} text-white rounded-b-3xl shadow-lg px-4 pt-4 pb-6 transition-colors duration-500`;
+
+      // Update Location & Current Telemetry
+      document.getElementById('locationName').textContent = appState.locationName;
+      document.getElementById('locationCoords').textContent =
+        `${appState.lat.toFixed(2)}°N, ${appState.lon.toFixed(2)}°E • Live Open-Meteo`;
+
+      document.getElementById('currentTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
+      const curWmo = decodeWeatherCode(cur.weather_code);
+      document.getElementById('currentCondition').textContent = `${curWmo.icon} ${curWmo.label}`;
+      document.getElementById('currentHiLo').textContent =
+        `H: ${Math.round(daily.temperature_2m_max[0])}°  L: ${Math.round(daily.temperature_2m_min[0])}°`;
+
+      // Update Risk Score & Badge
+      document.getElementById('currentRiskScore').textContent = currentRisk.score;
+      const riskBadgeEl = document.getElementById('currentRiskBadge');
+      riskBadgeEl.textContent = currentRisk.level;
+      riskBadgeEl.className = `mt-1.5 inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wide shadow-sm ${currentRisk.badgeBg}`;
+
+      // Telemetry Pills
+      document.getElementById('currentHumidity').textContent = `${Math.round(cur.relative_humidity_2m)}%`;
+      document.getElementById('humidityNote').textContent =
+        cur.relative_humidity_2m > 85 ? 'Fungal-favorable' : cur.relative_humidity_2m < 75 ? 'Dry-optimal' : 'Moderate RH';
+
+      const isLeafWet = currentDewSpread < 2.0 || cur.precipitation > 0.2;
+      document.getElementById('currentLeafStatus').textContent = isLeafWet ? 'Wet / Dewy' : 'Dry Leaves';
+      document.getElementById('currentDewSpread').textContent = `Dew spread: ${currentDewSpread.toFixed(1)}°C`;
+
+      document.getElementById('currentWind').textContent = `${Math.round(cur.wind_speed_10m)} km/h`;
+      document.getElementById('pondBadgeText').textContent = appState.nearWaterBody
+        ? `Water: ${appState.waterDistanceMeters}m (-${currentRisk.waterSuppression})`
+        : 'Water: OFF';
+
+      // Water indicator dot on settings gear & quick button
+      const waterDot = document.getElementById('waterActiveDot');
+      const quickWaterBtn = document.getElementById('quickWaterToggleBtn');
+      if (appState.nearWaterBody) {
+        waterDot.classList.remove('hidden');
+        quickWaterBtn.textContent = `Pond: ${appState.waterDistanceMeters}m ✓`;
+        quickWaterBtn.className =
+          'text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-cyan-100 hover:bg-cyan-200 text-cyan-900 border border-cyan-300 transition';
+      } else {
+        waterDot.classList.add('hidden');
+        quickWaterBtn.textContent = 'Pond: OFF';
+        quickWaterBtn.className =
+          'text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition';
+      }
+
+      // Update Settings Modal Impact Preview
+      const previewEl = document.getElementById('waterImpactPreview');
+      if (appState.nearWaterBody) {
+        previewEl.textContent = `-${currentRisk.waterSuppression} risk pts (Active at ${appState.waterDistanceMeters}m)`;
+        previewEl.className = 'font-bold text-cyan-700';
+      } else {
+        previewEl.textContent = '0 pts (Toggle ON to apply)';
+        previewEl.className = 'font-bold text-slate-500';
+      }
+
+      // Update Advisory & Factor Chips
+      document.getElementById('advisoryDot').className = `w-2.5 h-2.5 rounded-full ${currentRisk.dotColor}`;
+      document.getElementById('currentAdvisory').textContent = currentRisk.advisory;
+
+      const chipsContainer = document.getElementById('factorChips');
+      chipsContainer.innerHTML = '';
+      currentRisk.factors.forEach((f) => {
+        const chip = document.createElement('span');
+        let style = 'bg-slate-100 text-slate-700 border-slate-200';
+        if (f.type === 'risk') style = 'bg-orange-50 text-orange-800 border-orange-200';
+        if (f.type === 'safe') style = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+        if (f.type === 'water') style = 'bg-cyan-50 text-cyan-800 border-cyan-200';
+        chip.className = `text-[11px] font-medium px-2.5 py-1 rounded-lg border ${style}`;
+        chip.textContent = f.label;
+        chipsContainer.appendChild(chip);
+      });
+
+      // 2. Render Next 24-Hour Strip
+      renderHourlyStrip(hourly);
+
+      // 3. Render 7-Day Outlook
+      renderDailyOutlook(daily, hourly);
+    }
+
+    function renderHourlyStrip(hourly) {
+      const container = document.getElementById('hourlyContainer');
+      container.innerHTML = '';
+
+      // Find the index matching current Manila hour
+      const now = new Date();
+      let startIndex = hourly.time.findIndex((t) => new Date(t) >= now);
+      if (startIndex === -1) startIndex = 0;
+
+      const sliceEnd = Math.min(startIndex + 24, hourly.time.length);
+
+      for (let i = startIndex; i < sliceEnd; i++) {
+        const dateObj = new Date(hourly.time[i]);
+        const hourNum = dateObj.getHours();
+        const isNight = hourNum < 6 || hourNum >= 18;
+        const timeLabel =
+          i === startIndex
+            ? 'Now'
+            : dateObj.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+
+        const temp = hourly.temperature_2m[i];
+        const rh = hourly.relative_humidity_2m[i];
+        const dew = hourly.dew_point_2m[i];
+        const rain = hourly.precipitation[i];
+        const wind = hourly.wind_speed_10m[i];
+        const dewSpread = temp - dew;
+
+        const risk = predictRSSIRisk({
+          tempC: temp,
+          humidity: rh,
+          dewPointDepression: dewSpread,
+          precipitation: rain,
+          windSpeed: wind,
+          nearWaterBody: appState.nearWaterBody,
+          waterDistanceMeters: appState.waterDistanceMeters,
+        });
+
+        const wmo = decodeWeatherCode(hourly.weather_code[i], isNight);
+        const leafTag = dewSpread < 2.0 || rain > 0.2 ? '💧Wet' : '🍃Dry';
+
+        const card = document.createElement('div');
+        card.className =
+          'shrink-0 w-[76px] rounded-2xl border border-slate-200/90 bg-slate-50/70 p-2.5 flex flex-col items-center text-center justify-between gap-1.5';
+        card.innerHTML = `
+          <span class="text-[11px] font-semibold text-slate-600">${timeLabel}</span>
+          <span class="text-xl my-0.5">${wmo.icon}</span>
+          <span class="text-sm font-extrabold text-slate-900">${Math.round(temp)}°</span>
+          <span class="text-[10px] text-slate-500 font-medium">${leafTag}</span>
+          <span class="w-full py-0.5 rounded-md text-[10px] font-extrabold ${risk.badgeBg}">${risk.score}</span>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function renderDailyOutlook(daily, hourly) {
+      const container = document.getElementById('dailyContainer');
+      container.innerHTML = '';
+
+      for (let d = 0; d < daily.time.length; d++) {
+        const dateStr = daily.time[d]; // YYYY-MM-DD
+        const dateObj = new Date(dateStr + 'T12:00:00');
+        const dayName =
+          d === 0
+            ? 'Today'
+            : d === 1
+            ? 'Tomorrow'
+            : dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        // Sample afternoon peak conditions (around 14:00) from hourly data for realistic daily spread risk
+        const afternoonIdx = d * 24 + 14;
+        const sampleTemp = hourly.temperature_2m[afternoonIdx] ?? daily.temperature_2m_max[d];
+        const sampleRh = hourly.relative_humidity_2m[afternoonIdx] ?? 72;
+        const sampleDew = hourly.dew_point_2m[afternoonIdx] ?? sampleTemp - 3.5;
+        const sampleRain = daily.precipitation_sum[d] / 6; // Distributed rainfall factor
+        const sampleWind = daily.wind_speed_10m_max[d];
+        const dewSpread = sampleTemp - sampleDew;
+
+        const dayRisk = predictRSSIRisk({
+          tempC: sampleTemp,
+          humidity: sampleRh,
+          dewPointDepression: dewSpread,
+          precipitation: sampleRain,
+          windSpeed: sampleWind,
+          nearWaterBody: appState.nearWaterBody,
+          waterDistanceMeters: appState.waterDistanceMeters,
+        });
+
+        const wmo = decodeWeatherCode(daily.weather_code[d]);
+        const rainSum = daily.precipitation_sum[d];
+
+        // Bar fill color
+        let barColor = 'bg-emerald-500';
+        if (dayRisk.score >= 85) barColor = 'bg-rose-600';
+        else if (dayRisk.score >= 65) barColor = 'bg-orange-500';
+        else if (dayRisk.score >= 35) barColor = 'bg-amber-400';
+
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className =
+          'w-full py-3 px-1.5 flex items-center justify-between gap-2 hover:bg-slate-50 active:bg-slate-100 transition text-left rounded-xl';
+        row.innerHTML = `
+          <div class="w-24 shrink-0">
+            <div class="text-xs font-bold text-slate-800">${dayName}</div>
+            <div class="text-[10px] text-slate-500">${rainSum > 0.5 ? `🌧️ ${rainSum.toFixed(1)}mm` : 'Dry canopy'}</div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-lg">${wmo.icon}</span>
+            <span class="text-xs font-semibold text-slate-600 w-14 text-right">
+              <strong class="text-slate-900">${Math.round(daily.temperature_2m_max[d])}°</strong>/${Math.round(daily.temperature_2m_min[d])}°
+            </span>
+          </div>
+
+          <div class="flex-1 max-w-[115px] flex items-center gap-2 justify-end">
+            <div class="w-14 h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div class="h-full ${barColor} rounded-full" style="width: ${dayRisk.score}%"></div>
+            </div>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase w-14 text-center ${dayRisk.badgeBg}">
+              ${dayRisk.level === 'MODERATE' ? 'MOD' : dayRisk.level}
+            </span>
+          </div>
+        `;
+
+        // Open detailed breakdown modal when tapped
+        row.addEventListener('click', () => {
+          document.getElementById('modalDayTitle').textContent = `${dayName} • ${appState.locationName}`;
+          document.getElementById('modalDaySubtitle').textContent = `${wmo.label} (${dateStr})`;
+          document.getElementById('modalDayScore').textContent = `${dayRisk.score}/100`;
+
+          const modalBadge = document.getElementById('modalDayBadge');
+          modalBadge.textContent = dayRisk.level;
+          modalBadge.className = `px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide ${dayRisk.badgeBg}`;
+
+          document.getElementById('modalDayTemp').textContent =
+            `${Math.round(daily.temperature_2m_min[d])}°C – ${Math.round(daily.temperature_2m_max[d])}°C`;
+          document.getElementById('modalDayDew').textContent =
+            `${dewSpread.toFixed(1)}°C (${dewSpread < 2 ? 'Wet/Dewy' : 'Dry Leaves'})`;
+          document.getElementById('modalDayRain').textContent = `${rainSum.toFixed(1)} mm total`;
+          document.getElementById('modalDayWind').textContent = `${Math.round(sampleWind)} km/h max`;
+          document.getElementById('modalDayAdvisory').textContent = dayRisk.advisory;
+
+          document.getElementById('dayDetailModal').classList.remove('hidden');
+        });
+
+        container.appendChild(row);
+      }
+    }
+
+    /**
+     * =========================================================================
+     * GPS GEOLOCATION & BIGDATACLOUD REVERSE GEOCODING
+     * =========================================================================
+     */
+    function handleUseGPS() {
+      if (!navigator.geolocation) {
+        showStatusBanner('GPS is not supported by this browser.');
+        return;
+      }
+
+      showStatusBanner('Acquiring phone GPS coordinates...');
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          appState.lat = position.coords.latitude;
+          appState.lon = position.coords.longitude;
+
+          // Reverse geocode via free BigDataCloud client-side API
+          try {
+            const revUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${appState.lat}&longitude=${appState.lon}&localityLanguage=en`;
+            const revRes = await fetch(revUrl);
+            const revData = await revRes.json();
+            const town = revData.locality || revData.city || 'Field Location';
+            const province = revData.principalSubdivision || 'Visayas';
+            appState.locationName = `${town}, ${province}`;
+          } catch (e) {
+            appState.locationName = `GPS (${appState.lat.toFixed(3)}, ${appState.lon.toFixed(3)})`;
+          }
+
+          fetchWeatherAndRender();
+        },
+        (error) => {
+          console.warn('GPS Error:', error);
+          showStatusBanner('GPS permission denied or unavailable. Use search bar or hubs above.');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    /**
+     * =========================================================================
+     * OPEN-METEO GEOCODING TOWN SEARCH
+     * =========================================================================
+     */
+    let searchTimeout = null;
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      clearSearchBtn.classList.toggle('hidden', query.length === 0);
+
+      clearTimeout(searchTimeout);
+      if (query.length < 2) {
+        searchResults.classList.add('hidden');
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=en&format=json`;
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (!data.results || data.results.length === 0) {
+            searchResults.innerHTML = `<div class="px-4 py-3 text-xs text-slate-500">No matching municipality found.</div>`;
+            searchResults.classList.remove('hidden');
+            return;
+          }
+
+          searchResults.innerHTML = '';
+          data.results.forEach((place) => {
+            const label = [place.name, place.admin2, place.admin1, place.country_code]
+              .filter(Boolean)
+              .join(', ');
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className =
+              'w-full text-left px-4 py-2.5 text-xs hover:bg-emerald-50 border-b border-slate-100 last:border-none flex items-center justify-between';
+            item.innerHTML = `
+              <span class="font-semibold text-slate-800">${label}</span>
+              <span class="text-[10px] text-slate-400">${place.latitude.toFixed(2)}, ${place.longitude.toFixed(2)}</span>
+            `;
+            item.addEventListener('click', () => {
+              appState.lat = place.latitude;
+              appState.lon = place.longitude;
+              appState.locationName = place.admin1 ? `${place.name}, ${place.admin1}` : place.name;
+              searchInput.value = '';
+              clearSearchBtn.classList.add('hidden');
+              searchResults.classList.add('hidden');
+              fetchWeatherAndRender();
+            });
+            searchResults.appendChild(item);
+          });
+          searchResults.classList.remove('hidden');
+        } catch (err) {
+          console.error('Geocoding error:', err);
+        }
+      }, 300);
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearSearchBtn.classList.add('hidden');
+      searchResults.classList.add('hidden');
+    });
+
+    // Quick Sugarcane Hub Pills
+    document.querySelectorAll('.hub-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        appState.lat = parseFloat(btn.dataset.lat);
+        appState.lon = parseFloat(btn.dataset.lon);
+        appState.locationName = btn.dataset.name;
+        fetchWeatherAndRender();
+      });
+    });
+
+    /**
+     * =========================================================================
+     * SETTINGS MODAL & OPENSTREETMAP OVERPASS WATER DETECTOR
+     * =========================================================================
+     */
+    const settingsModal = document.getElementById('settingsModal');
+    const waterToggle = document.getElementById('waterToggle');
+    const waterSlider = document.getElementById('waterDistanceSlider');
+    const waterSliderContainer = document.getElementById('waterSliderContainer');
+    const waterDistanceLabel = document.getElementById('waterDistanceLabel');
+
+    function syncSettingsUI() {
+      waterToggle.checked = appState.nearWaterBody;
+      waterSlider.value = appState.waterDistanceMeters;
+      waterSlider.disabled = !appState.nearWaterBody;
+      waterDistanceLabel.textContent = `${appState.waterDistanceMeters} m`;
+      waterSliderContainer.classList.toggle('opacity-50', !appState.nearWaterBody);
+    }
+
+    function saveWaterSettings() {
+      try {
+        localStorage.setItem(
+          'RedAlert_water_settings',
+          JSON.stringify({
+            nearWaterBody: appState.nearWaterBody,
+            waterDistanceMeters: appState.waterDistanceMeters,
+          })
+        );
+      } catch (e) {}
+    }
+
+    function openSettingsModal() {
+      syncSettingsUI();
+      settingsModal.classList.remove('hidden');
+    }
+
+    document.getElementById('openSettingsBtn').addEventListener('click', openSettingsModal);
+    document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+    });
+    document.getElementById('doneSettingsBtn').addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+      renderDashboard();
+    });
+
+    // Quick Pond Toggle right from the Field Advisory card
+    document.getElementById('quickWaterToggleBtn').addEventListener('click', () => {
+      appState.nearWaterBody = !appState.nearWaterBody;
+      saveWaterSettings();
+      syncSettingsUI();
+      renderDashboard();
+    });
+
+    waterToggle.addEventListener('change', (e) => {
+      appState.nearWaterBody = e.target.checked;
+      saveWaterSettings();
+      syncSettingsUI();
+      renderDashboard();
+    });
+
+    waterSlider.addEventListener('input', (e) => {
+      appState.waterDistanceMeters = Number(e.target.value);
+      waterDistanceLabel.textContent = `${appState.waterDistanceMeters} m`;
+      saveWaterSettings();
+      renderDashboard();
+    });
+
+    // Optional OpenStreetMap Overpass API Water-Body Detection within 500m
+    document.getElementById('detectWaterBtn').addEventListener('click', async () => {
+      const btnText = document.getElementById('detectWaterBtnText');
+      const statusEl = document.getElementById('overpassStatus');
+      btnText.textContent = 'Scanning OpenStreetMap within 500m...';
+      statusEl.classList.remove('hidden');
+      statusEl.textContent = 'Querying ponds, creeks, and canals around coordinates...';
+
+      const query = `[out:json][timeout:10];(way["natural"="water"](around:500,${appState.lat},${appState.lon});way["waterway"](around:500,${appState.lat},${appState.lon});relation["natural"="water"](around:500,${appState.lat},${appState.lon}););out center 5;`;
+
+      try {
+        const res = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          body: 'data=' + encodeURIComponent(query),
+        });
+        const data = await res.json();
+
+        if (data.elements && data.elements.length > 0) {
+          // Estimate closest distance using Haversine formula
+          let minDist = 500;
+          data.elements.forEach((el) => {
+            if (el.center) {
+              const d = haversineMeters(appState.lat, appState.lon, el.center.lat, el.center.lon);
+              if (d < minDist) minDist = d;
+            }
+          });
+          const roundedDist = Math.max(50, Math.round(minDist / 25) * 25);
+          appState.nearWaterBody = true;
+          appState.waterDistanceMeters = roundedDist;
+          saveWaterSettings();
+          syncSettingsUI();
+          renderDashboard();
+          statusEl.textContent = `✓ Found ${data.elements.length} water feature(s)! Closest ~${roundedDist}m away.`;
+        } else {
+          statusEl.textContent = 'No mapped water bodies within 500m on OSM. You can still toggle manually.';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Overpass API busy. Please use manual toggle above.';
+      } finally {
+        btnText.textContent = 'Auto-Detect Water Bodies within 500m (OSM)';
+      }
+    });
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function showStatusBanner(msg) {
+      const banner = document.getElementById('statusBanner');
+      document.getElementById('statusBannerText').textContent = msg;
+      banner.classList.remove('hidden');
+    }
+
+    function hideStatusBanner() {
+      document.getElementById('statusBanner').classList.add('hidden');
+    }
+
+    // Wire GPS button & initialize app on load
+    document.getElementById('gpsBtn').addEventListener('click', handleUseGPS);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      syncSettingsUI();
+      fetchWeatherAndRender();
+    });
+  </script>
+</body>
+</html>
